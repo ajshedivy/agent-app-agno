@@ -20,44 +20,41 @@ def truncate_word(content: Any, *, length: int, suffix: str = "...") -> str:
 
     return content[: length - len(suffix)].rsplit(" ", 1)[0] + suffix
 
-
-class Db2iTools(Toolkit):
+class SQLTools(Toolkit):
     def __init__(
         self,
-        schema: str,
-        db_details: Union[dict, DaemonServer],
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        schema: Optional[str] = None,
         tables: Optional[Dict[str, Any]] = None,
         list_tables: bool = True,
         describe_table: bool = True,
         run_sql_query: bool = True,
     ):
-        super().__init__(name="Db2iTools")
+        super().__init__(name="db2i_tools")
 
+        # Database connection
+        self.user = user
+        self.password = password
+        self.host = host
+        self.port = port
         self.schema = schema
-        self.connection_details = db_details
-        self.connection = self._create_connection(db_details)
+
+        # Tables this toolkit can access
         self.tables: Optional[Dict[str, Any]] = tables
 
+        # Register functions in the toolkit
         if list_tables:
             self.register(self.list_tables)
-
         if describe_table:
             self.register(self.describe_table)
-
         if run_sql_query:
             self.register(self.run_sql)
+            
+        self._max_string_length = 300
 
-    def _create_connection(
-        self, details: Union[Dict[str, Any], DaemonServer]
-    ) -> Connection:
-        connection = connect(details)
-        return connection
-    
-    def get_connection(self) -> Connection:
-        if self.connection:
-            return self.connection
-        return self._create_connection(self.connection_details)
-    
     def _execute(
         self,
         sql: str,
@@ -77,11 +74,22 @@ class Db2iTools(Toolkit):
         Returns:
             ResultRow | ResultSet | list: _description_
         """
-        
+
         try:
-            with connect(self.connection_details) as conn:
+            logger.debug(f"Connecting to database with host: {self.host}, user: {self.user}, port: {self.port}")
+            with connect(
+                DaemonServer(
+                    host=self.host,
+                    user=self.user,
+                    password=self.password,
+                    port=self.port or 8075,
+                    ignoreUnauthorized=True,
+                )
+            ) as conn:
+                logger.debug(f"Executing SQL: {sql} with options: {options}")
                 with conn.execute(sql, options) as cursor:
                     if cursor.has_results:
+                        logger.debug(f"SQL execution returned results, fetching data with fetch mode: {fetch}")
                         if fetch == "all":
                             result = cursor.fetchall()
                         elif fetch == "one":
@@ -96,13 +104,14 @@ class Db2iTools(Toolkit):
                         else:
                             raise ValueError(f"Invalid fetch value: {fetch}")
 
+                        logger.debug(f"Fetched data: {result}")
                         return result["data"]
-            
+
         except Exception as e:
-            logger.error(f"An error occured while executing: {sql}")
+            logger.error(f"An error occurred while executing: {sql}, Error: {e}")
 
         return []
-    
+
     def _get_table_definition(self, table: str) -> str:
         sql = dedent(
             f"""
@@ -207,18 +216,3 @@ class Db2iTools(Toolkit):
             return ""
         else:
             return str(res)
-        
-    # def __iter__(self) -> Iterator:
-    #     """Make the toolkit iterable by returning an iterator of registered tools."""
-    #     return iter(self.get_registered_tools())
-    
-    # def get_registered_tools(self):
-    #     """Return the list of registered tools."""
-    #     # Access the tools from the parent Toolkit class
-    #     # This might need adjustment based on how Toolkit class is implemented
-    #     return self.tools if hasattr(self, "tools") else []
-
-        
-        
-        
-    
