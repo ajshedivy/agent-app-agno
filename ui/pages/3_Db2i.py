@@ -223,7 +223,7 @@ async def body() -> None:
     # About section
     ####################################################################
     # TODO: Implement database-specific utilities widget
-    # await utilities_widget(agent_name, db2i)
+    await utilities_widget(agent_name, db2i)
 
 
 async def body2() -> None:
