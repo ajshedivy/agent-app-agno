@@ -158,11 +158,11 @@ def get_db2i_agent(
     Returns:
         Tuple[Agent, MCPTools]: A tuple containing the configured Db2i agent and the MCPTools instance.
     """
-    server_params = get_server_params(
-        server_path=server_path, connection_details=connection_details, use_env=use_env
-    )
+    # server_params = get_server_params(
+    #     server_path=server_path, connection_details=connection_details, use_env=use_env
+    # )
 
-    mcp_tools = MCPTools(server_params=server_params)
+    # mcp_tools = MCPTools(server_params=server_params)
     
     additional_context = ""
     if user_id:
@@ -176,7 +176,7 @@ def get_db2i_agent(
         model=OpenAIChat(id=model_id),
         user_id=user_id,
         session_id=session_id,
-        tools=[mcp_tools],
+        tools=[],
         storage=PostgresAgentStorage(table_name="sage_sessions", db_url=db_url),
         instructions=dedent(
             """\
