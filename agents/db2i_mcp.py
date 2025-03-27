@@ -7,21 +7,36 @@ from agno.models.openai import OpenAIChat
 from agno.tools.mcp import MCPTools
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+from agno.storage.agent.sqlite import SqliteAgentStorage
+import os
 
-server_path = "/Users/adamshedivy/Documents/IBM/sandbox/oss/ai/db2i-ai/db2i-agents/examples/mcp/db2i-mcp-server"
+# get path of agents directory
+db_path = "tmp/agents.db"
+
+server_path = os.path.abspath("db2i-agents/examples/mcp/db2i-mcp-server")
+print(f"Server path: {server_path}")
 
 
-async def run_agent(message: str) -> None:
-    """Run the filesystem agent with the given message."""
+async def run_agent(message: str, agent: Agent) -> None:
+    """Run the agent with the given message."""
+    await agent.aprint_response(message, stream=True)
+
+
+async def interactive_cli() -> None:
+    """Run an interactive CLI session with the DB2i agent."""
+    print("DB2i Database Assistant CLI")
+    print("Type 'exit', 'quit', or Ctrl+C to end the conversation")
+    print("-" * 50)
 
     # MCP parameters for the Filesystem server accessed via `npx`
     server_params = StdioServerParameters(
-        command="/Users/adamshedivy/.local/bin/uv",
+        command="uv",
         args=[
             "--directory",
             server_path,
             "run",
             "db2i-mcp-server",
+            "--use-env"
         ],
     )
 
@@ -30,6 +45,7 @@ async def run_agent(message: str) -> None:
         agent = Agent(
             model=OpenAIChat(id="gpt-4o"),
             tools=[mcp_tools],
+            storage=SqliteAgentStorage(table_name="db2i_mcp", db_file=db_path),
             instructions=dedent(
                 """\
                 You are a Db2i Database assistant. Help users answer questions about the database.
@@ -52,13 +68,25 @@ async def run_agent(message: str) -> None:
             ),
             markdown=True,
             show_tool_calls=True,
+            add_history_to_messages=True,
+            num_history_responses=3,
+            read_chat_history=True,
+            debug_mode=True
         )
 
-        # Run the agent
-        await agent.aprint_response(message, stream=True)
+        try:
+            while True:
+                user_input = input("\n> ")
+                if user_input.lower() in ["exit", "quit"]:
+                    print("Ending conversation. Goodbye!")
+                    break
+                
+                if user_input.strip():
+                    await run_agent(user_input, agent)
+        except KeyboardInterrupt:
+            print("\nEnding conversation. Goodbye!")
 
 
 # Example usage
 if __name__ == "__main__":
-    # Basic example - exploring project license
-    asyncio.run(run_agent("which employee has the highest salary?"))
+    asyncio.run(interactive_cli())

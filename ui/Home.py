@@ -10,7 +10,7 @@ from ui.utils import about_agno, footer
 nest_asyncio.apply()
 
 st.set_page_config(
-    page_title="Agno Agents",
+    page_title="My Agents",
     page_icon=":orange_heart:",
     layout="wide",
 )
@@ -18,7 +18,7 @@ st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 
 async def header():
-    st.markdown("<h1 class='heading'>Agno Agents</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 class='heading'>My Agents</h1>", unsafe_allow_html=True)
     st.markdown(
         "<p class='subheading'>Welcome to the Agno Agents platform! We've provided some sample agents to get you started.</p>",
         unsafe_allow_html=True,
@@ -28,7 +28,7 @@ async def header():
 async def body():
     st.markdown("### Available Agents")
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown(
             """
@@ -56,6 +56,19 @@ async def body():
         )
         if st.button("Launch Scholar", key="scholar_button"):
             st.switch_page("pages/2_Scholar.py")
+    with col3:
+        st.markdown(
+            """
+        <div style="padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px;">
+            <h3>Db2i</h3>
+            <p>A database agent for db2 for i.</p>
+            <p>Perfect for exploring your database.</p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+        if st.button("Launch Db2i", key="db2i_button"):
+            st.switch_page("pages/3_Db2i.py")
 
 
 async def main():
