@@ -11,6 +11,19 @@ You can run the agent app in 2 environments:
 1. A development environment running locally on docker
 2. A production environment running on AWS ECS
 
+## Agent Integration
+This repo has two prebuilt agents that can be used out of the box with OpenAI: 
+- `Sage`: A knowledge agent that uses Agentic RAG to deliver context-rich answers from a knowledge base.
+- `Scholar`: A research agent that uses DuckDuckGo (and optionally Exa) to deliver in-depth answers about any topic.
+
+### Db2i Agent (in Progress)
+TODO:
+- Update MCPTools to use official MCP tools package
+- Add support for other models, including ollama, watsonx, and others
+- System admin support in UI
+- deploy on Power
+
+
 ## Setup
 
 1. [Install uv](https://docs.astral.sh/uv/#getting-started) for managing the python environment.
