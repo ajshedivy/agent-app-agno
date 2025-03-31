@@ -32,3 +32,4 @@ dist
 venv*
 
 tmp/
+.mcp/

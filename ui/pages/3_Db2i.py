@@ -12,17 +12,33 @@ from ui.css import CUSTOM_CSS
 from ui.utils import (
     about_agno,
     add_message,
+    create_system,
     display_tool_calls,
     example_inputs,
     initialize_agent_session_state,
     knowledge_widget,
     selected_model,
     session_selector,
+    system_selector,
     utilities_widget,
 )
 
 
 def get_connection_details():
+    """Get connection details from session state or environment variables."""
+    # Check if we have a selected system in session state
+    if hasattr(st.session_state, "selected_system") and st.session_state.selected_system:
+        system = st.session_state.selected_system
+        connection_details = {
+            "host": system["host"],
+            "user": system["user"],
+            "password": system["password"],
+            "port": system["port"],
+            "schema": system["schema"],
+        }
+        return connection_details
+    
+    # Fallback to environment variables
     from dotenv import load_dotenv
     import os
 
@@ -34,6 +50,7 @@ def get_connection_details():
         "port": os.getenv("DB2I_PORT", 8075),
         "schema": os.getenv("DB2I_SCHEMA"),
     }
+    return connection_details
 
 
 nest_asyncio.apply()
@@ -60,6 +77,22 @@ async def body() -> None:
     # Initialize User and Session State
     ####################################################################
     user_id = st.sidebar.text_input(":technologist: Username", value="Ava")
+
+    ####################################################################
+    # System Connection UI Components
+    ####################################################################
+    # Add a system creator form
+    await create_system()
+    
+    # Add a system selector dropdown
+    await system_selector()
+    
+    # Display selected system information
+    if "selected_system" in st.session_state and st.session_state.selected_system:
+        system = st.session_state.selected_system
+        st.sidebar.success(f"Connected to: {system['host']}:{system['port']}")
+    else:
+        st.sidebar.warning("No system selected. Please select or create a system connection.")
 
     ####################################################################
     # Model selector
@@ -163,13 +196,17 @@ async def body() -> None:
                     current_session_id = st.session_state[agent_name].get("session_id")
                     logger.info(f"Using session ID: {current_session_id}")
 
+                    # Get connection details from session state or environment
+                    connection_details = get_connection_details()
+                    
                     # Create temporary agent with existing session ID
                     async with db2i_agent_session(
                         model_id=model_id,
                         user_id=user_id,
                         session_id=current_session_id,  # Pass existing session ID for continuity
                         debug_mode=True,
-                        use_env=True,
+                        connection_details=connection_details,
+                        use_env=False if connection_details else True,
                     ) as temp_agent:
                         # Process the request with temporary agent that has full context
                         run_response = await temp_agent.arun(user_message, stream=True)
@@ -273,6 +310,9 @@ async def body2() -> None:
             with st.spinner("Processing your request..."):
                 try:
                     # Use the context manager to ensure proper lifecycle management
+                    # Get connection details from session state or environment
+                    connection_details = get_connection_details()
+                    
                     async with db2i_agent_session(
                         model_id=model_id,
                         user_id=user_id,
@@ -280,7 +320,8 @@ async def body2() -> None:
                             "session_id"
                         ),  # Maintain consistent session ID
                         debug_mode=True,
-                        use_env=True,
+                        connection_details=connection_details,
+                        use_env=False if connection_details else True,
                     ) as agent:
                         # Reconstruct previous conversation in the agent's memory
                         # We need to manually add each message to the agent's memory

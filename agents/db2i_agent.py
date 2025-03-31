@@ -4,9 +4,11 @@ from typing import Any, AsyncGenerator, Dict, Union
 from agno.agent import Agent
 from agno.tools.mcp import MCPTools
 from agno.storage.agent.postgres import PostgresAgentStorage
+from agents.model import get_model
 from db.session import db_url
 from dotenv import load_dotenv
 from agno.models.openai import OpenAIChat
+from agno.models.base import Model
 from mcp import StdioServerParameters
 import os
 
@@ -15,27 +17,20 @@ server_path = "/app/agents/db2i-agents/examples/mcp/db2i-mcp-server"
 
 
 def get_server_params(
-    server_path: str = server_path, connection_details: Dict[str, Any] = None, use_env: bool = False
+    server_path: str = server_path,
+    connection_details: Dict[str, Any] = None,
+    use_env: bool = False,
 ) -> StdioServerParameters:
-    
+
     if use_env:
         return StdioServerParameters(
             command="/usr/local/bin/uv",
-            args=[
-                "--directory",
-                server_path,
-                "run",
-                "db2i-mcp-server",
-                "--use-env"
-            ],
+            args=["--directory", server_path, "run", "db2i-mcp-server", "--use-env"],
         )
 
     server_params = StdioServerParameters(
-        command="uv",
+        command="uvx",
         args=[
-            "--directory",
-            server_path,
-            "run",
             "db2i-mcp-server",
             "--host",
             connection_details["host"],
@@ -44,7 +39,7 @@ def get_server_params(
             "--password",
             connection_details["password"],
             "--port",
-            connection_details.get("port", 8075),
+            str(connection_details.get("port", 8075)),
             "--schema",
             connection_details["schema"],
         ],
@@ -53,23 +48,23 @@ def get_server_params(
 
 
 def create_db2i_agent(
-    model_id: str = "gpt-4o",
+    model: Model = OpenAIChat(),
     user_id: str = None,
     session_id: str = None,
-    tools = None,
+    tools=None,
     debug_mode: bool = True,
 ) -> Agent:
     """
     Create a Db2i agent with the specified configuration.
     This function centralizes agent creation logic for reuse.
-    
+
     Args:
         model_id: The model ID to use
         user_id: The user ID
         session_id: The session ID
         tools: List of tools to add to the agent
         debug_mode: Whether to enable debug mode
-        
+
     Returns:
         Agent: Configured Db2i agent
     """
@@ -78,15 +73,15 @@ def create_db2i_agent(
         additional_context += "<context>"
         additional_context += f"You are interacting with the user: {user_id}"
         additional_context += "</context>"
-    
+
     # Use empty list if tools is None
     if tools is None:
         tools = []
-    
+
     return Agent(
         name="Db2i Agent",
         agent_id="db2i-agent",
-        model=OpenAIChat(id=model_id),
+        model=model,
         user_id=user_id,
         session_id=session_id,
         tools=tools,
@@ -129,15 +124,15 @@ async def db2i_agent_session(
     session_id: str = None,
     debug_mode: bool = True,
     connection_details: Dict[str, Any] = None,
-    use_env: bool = False
+    use_env: bool = False,
 ) -> AsyncGenerator[Agent, None]:
     """
     Context manager that creates and yields a Db2i agent with MCP tools.
-    
+
     Usage:
         async with db2i_agent_session(model_id="gpt-4o", use_env=True) as agent:
             response = await agent.arun("What tables are available?")
-    
+
     Args:
         model_id (str): The model ID to use for the agent.
         user_id (str): The user ID for the agent.
@@ -153,15 +148,18 @@ async def db2i_agent_session(
         server_path=server_path, connection_details=connection_details, use_env=use_env
     )
 
+    # get Model from id
+    model = get_model(model_id=model_id)
+
     # Create MCPTools as a context manager to ensure proper cleanup
     async with MCPTools(server_params=server_params) as mcp_tools:
         # Create agent with the active MCP tools
         agent = create_db2i_agent(
-            model_id=model_id,
+            model=model,
             user_id=user_id,
             session_id=session_id,
             tools=[mcp_tools],
-            debug_mode=debug_mode
+            debug_mode=debug_mode,
         )
 
         try:
@@ -177,7 +175,7 @@ def get_db2i_agent(
     session_id: str = None,
     debug_mode: bool = True,
     connection_details: Dict[str, Any] = None,
-    use_env: bool = False
+    use_env: bool = False,
 ) -> Agent:
     """
     Get a Db2i agent with the specified model ID and connection details,
@@ -194,11 +192,15 @@ def get_db2i_agent(
     Returns:
         Agent: A configured Db2i agent without MCP tools.
     """
+
+    # get Model from id
+    model = get_model(model_id)
+
     # Create agent with empty tools list - MCP tools must be added at runtime
     return create_db2i_agent(
-        model_id=model_id,
+        model=model,
         user_id=user_id,
         session_id=session_id,
         tools=[],  # No tools initially
-        debug_mode=debug_mode
+        debug_mode=debug_mode,
     )
