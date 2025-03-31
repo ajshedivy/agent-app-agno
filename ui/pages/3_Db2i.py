@@ -27,7 +27,10 @@ from ui.utils import (
 def get_connection_details():
     """Get connection details from session state or environment variables."""
     # Check if we have a selected system in session state
-    if hasattr(st.session_state, "selected_system") and st.session_state.selected_system:
+    if (
+        hasattr(st.session_state, "selected_system")
+        and st.session_state.selected_system
+    ):
         system = st.session_state.selected_system
         connection_details = {
             "host": system["host"],
@@ -37,7 +40,7 @@ def get_connection_details():
             "schema": system["schema"],
         }
         return connection_details
-    
+
     # Fallback to environment variables
     from dotenv import load_dotenv
     import os
@@ -83,16 +86,18 @@ async def body() -> None:
     ####################################################################
     # Add a system creator form
     await create_system()
-    
+
     # Add a system selector dropdown
     await system_selector()
-    
+
     # Display selected system information
     if "selected_system" in st.session_state and st.session_state.selected_system:
         system = st.session_state.selected_system
         st.sidebar.success(f"Connected to: {system['host']}:{system['port']}")
     else:
-        st.sidebar.warning("No system selected. Please select or create a system connection.")
+        st.sidebar.warning(
+            "No system selected. Please select or create a system connection."
+        )
 
     ####################################################################
     # Model selector
@@ -196,9 +201,8 @@ async def body() -> None:
                     current_session_id = st.session_state[agent_name].get("session_id")
                     logger.info(f"Using session ID: {current_session_id}")
 
-                    # Get connection details from session state or environment
                     connection_details = get_connection_details()
-                    
+
                     # Create temporary agent with existing session ID
                     async with db2i_agent_session(
                         model_id=model_id,

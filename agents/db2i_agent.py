@@ -29,8 +29,11 @@ def get_server_params(
         )
 
     server_params = StdioServerParameters(
-        command="uvx",
+        command="uv",
         args=[
+            "--directory",
+            server_path,
+            "run",
             "db2i-mcp-server",
             "--host",
             connection_details["host"],
