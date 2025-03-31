@@ -44,31 +44,46 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 source .venv/bin/activate
 ```
 
-## Run application locally using docker
+## Run application locally using docker or podman
 
-1. Install [docker desktop](https://www.docker.com/products/docker-desktop)
+1. Install [docker desktop](https://www.docker.com/products/docker-desktop), or [Podmand desktop](https://podman.io/) if you prefer.
 
 2. Export API keys
 
-Required: Set the `OPENAI_API_KEY` environment variable using
+Required: Set `OLLAMA_API_BASE` or the `OPENAI_API_KEY` environment variable
 
 ```sh
 export OPENAI_API_KEY=***
 ```
 
-> you may use any model provider, just need to update the agents in the /agents folder
+```sh
+export OLLAMA_API_BASE=http://OLLAMA_URL:11434
+```
+> Note: you can use Ollama running locally on your host machine:
+> ```sh
+> export OLLAMA_API_BASE="http://host.docker.internal:11434"
+> ```
+
 
 Optional: Set the `EXA_API_KEY` if you'd like to use Exa search
 
 ```sh
 export EXA_API_KEY=***
 ```
+---
+### Build the Development Images
 
-3. Start the workspace:
+1. Build the container images locally:
 
-```sh
-ag ws up
-```
+    ```sh
+    ag ws up --env dev --infra docker --type image --force
+    ```
+
+2. Start/Restart containers:
+
+    ```sh
+    ag ws restart --env dev --infra docker --type container
+    ```
 
 - This will run 3 containers:
   - Streamlit on [localhost:8501](http://localhost:8501)
@@ -79,9 +94,9 @@ ag ws up
 
 4. Stop the workspace using:
 
-```sh
-ag ws down
-```
+    ```sh
+    ag ws down
+    ```
 
 ## More Information
 
