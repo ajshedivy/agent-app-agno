@@ -44,11 +44,11 @@ def get_connection_details():
 
     load_dotenv()
     connection_details = {
-        "host": os.getenv("DB2I_HOST"),
-        "user": os.getenv("DB2I_USER"),
-        "password": os.getenv("DB2I_PASSWORD"),
-        "port": os.getenv("DB2I_PORT", 8075),
-        "schema": os.getenv("DB2I_SCHEMA"),
+        "host": os.getenv("HOST"),
+        "user": os.getenv("DB_USER"),
+        "password": os.getenv("PASSWORD"),
+        "port": os.getenv("PORT", 8075),
+        "schema": os.getenv("SCHEMA"),
     }
     return connection_details
 
