@@ -38,6 +38,8 @@ container_env = {
     # Get the OpenAI API key and Exa API key from the local environment
     "OPENAI_API_KEY": getenv("OPENAI_API_KEY"),
     "EXA_API_KEY": getenv("EXA_API_KEY"),
+    # Ollama api endpoit
+    "OLLAMA_API_BASE": getenv("OLLAMA_API_BASE"),
     # Enable monitoring
     "AGNO_MONITOR": "True",
     "AGNO_API_KEY": getenv("AGNO_API_KEY"),

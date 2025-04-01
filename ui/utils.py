@@ -27,6 +27,7 @@ async def selected_model() -> str:
     model_options = {
         "gpt-4o": "gpt-4o",
         "o3-mini": "o3-mini",
+        "ollama:qwen2.5": "qwen2.5:latest"
     }
     selected_model = st.sidebar.selectbox(
         "Choose a model",
@@ -331,6 +332,163 @@ async def utilities_widget(agent_name: str, agent: Agent) -> None:
             mime="text/markdown",
         ):
             st.sidebar.success("Chat history exported!")
+            
+            
+async def create_system():
+    """
+    UI form to create a system connection. The form will be displayed in the sidebar and is collapsed or hidden by default. 
+    The form has the following input boxes:
+    - Host: str
+    - User: str
+    - port: int
+    - password: str
+    - schema: str
+
+    the form has a submit button, that will create and upload a new entry to the `systems` database table using get_db() from db/session.py
+    """
+    # Initialize session state for systems if needed
+    if "selected_system" not in st.session_state:
+        st.session_state.selected_system = None
+    
+    # Initialize form reset key if it doesn't exist
+    if "form_reset_key" not in st.session_state:
+        st.session_state.form_reset_key = 0
+    
+    with st.sidebar:
+        with st.expander("➕ Add New System", expanded=False):
+            # Create a form for system details
+            with st.form(f"create_system_form_{st.session_state.form_reset_key}"):
+                st.markdown("### Add New System Connection")
+                host = st.text_input("Host", placeholder="e.g., localhost or 192.168.1.100")
+                user = st.text_input("User", placeholder="Username")
+                password = st.text_input("Password", type="password")
+                port = st.number_input("Port", min_value=1, max_value=65535, value=8076)
+                schema = st.text_input("Schema", placeholder="Default schema")
+                
+                # Submit button
+                submitted = st.form_submit_button("Create System Connection")
+                
+                if submitted:
+                    # Validate all fields are provided
+                    if not (host and user and password and schema):
+                        st.error("All fields are required")
+                        return
+                    
+                    try:
+                        # Create system in database
+                        from db.session import get_db
+                        from db.tables.systems import SystemsTable
+                        db = next(get_db())
+                        system = SystemsTable(host=host, user=user, password=password, port=port, schema=schema)
+                        db.add(system)
+                        db.commit()
+                        db.refresh(system)
+                        
+                        # Update session state with the new system
+                        st.session_state.selected_system = {
+                            "id": system.id,
+                            "host": system.host,
+                            "user": system.user,
+                            "password": system.password,
+                            "port": system.port,
+                            "schema": system.schema
+                        }
+                        
+                        # Increment the form key to reset the form
+                        st.session_state.form_reset_key += 1
+                        
+                        # Show success message
+                        st.success(f"System connection for {host}:{port} created successfully!")
+                        
+                        # Trigger a rerun to refresh the form and show the new system in the selector
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error creating system: {str(e)}")
+                        return
+                    
+async def system_selector():
+    """
+    UI dropdown to select a system connection from the `systems` database table.
+    Stores the selected system in session state for access across pages.
+    Returns the selected system dictionary.
+    """
+    from db.session import get_db
+    from db.tables.systems import SystemsTable
+    from sqlalchemy.exc import SQLAlchemyError
+    
+    # Initialize session state for system if it doesn't exist
+    if "selected_system" not in st.session_state:
+        st.session_state.selected_system = None
+    
+    with st.sidebar:
+        st.markdown("### Select System Connection")
+        
+        try:
+            # Query systems from database
+            db = next(get_db())
+            systems_data = []
+            
+            # Query all systems from the database
+            systems = db.query(SystemsTable).all()
+            
+            # Convert SQLAlchemy objects to dictionaries
+            for system in systems:
+                systems_data.append({
+                    "id": system.id,
+                    "host": system.host,
+                    "user": system.user,
+                    "password": system.password,
+                    "port": system.port,
+                    "schema": system.schema
+                })
+            
+            if not systems_data:
+                st.info("No system connections found. Please create one using the form above.")
+                return None
+            
+            # Create display options for the dropdown
+            system_options = [f"{system['host']}:{system['port']}" for system in systems_data]
+            system_options.insert(0, "Select a system...")
+            
+            # Determine the default index based on session state
+            default_index = 0
+            if st.session_state.selected_system:
+                for i, system in enumerate(systems_data):
+                    if system["id"] == st.session_state.selected_system["id"]:
+                        default_index = i + 1  # +1 because we added "Select" at index 0
+                        break
+            
+            # Display the dropdown
+            selected_system = st.selectbox(
+                "System Connection",
+                options=system_options,
+                index=default_index,
+                key="system_selector_dropdown",
+            )
+            
+            # Get the selected system and update session state
+            if selected_system != "Select a system...":
+                selected_index = system_options.index(selected_system) - 1  # Adjust for the "Select" option
+                selected_system_data = systems_data[selected_index]
+                
+                # Store in session state for access across pages
+                st.session_state.selected_system = selected_system_data
+                
+                # Show selected system info
+                st.success(f"Using system: {selected_system}")
+                
+                return selected_system_data
+            else:
+                # Clear selection if "Select a system..." is chosen
+                st.session_state.selected_system = None
+                return None
+                
+        except SQLAlchemyError as e:
+            st.error(f"Database error: {str(e)}")
+            return None
+        except Exception as e:
+            st.error(f"Error loading system connections: {str(e)}")
+            return None
 
 
 def restart_agent(agent_name: str):
