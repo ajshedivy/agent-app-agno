@@ -1,22 +1,18 @@
 import asyncio
 
-from agents.db2i_agent import db2i_agent_session, get_db2i_agent, get_server_params
 import nest_asyncio
 import streamlit as st
 from agno.agent import Agent
 from agno.tools.streamlit.components import check_password
 from agno.utils.log import logger
-from agno.tools.mcp import MCPTools
-from agents.sage import get_sage
+
+from agents.db2i_agent import db2i_agent_session, get_db2i_agent
 from ui.css import CUSTOM_CSS
 from ui.utils import (
-    about_agno,
     add_message,
     create_system,
     display_tool_calls,
-    example_inputs,
     initialize_agent_session_state,
-    knowledge_widget,
     selected_model,
     session_selector,
     system_selector,
@@ -42,8 +38,9 @@ def get_connection_details():
         return connection_details
 
     # Fallback to environment variables
-    from dotenv import load_dotenv
     import os
+
+    from dotenv import load_dotenv
 
     load_dotenv()
     connection_details = {

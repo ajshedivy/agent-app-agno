@@ -28,6 +28,7 @@ def get_server_params(
             args=["--directory", server_path, "run", "db2i-mcp-server", "--use-env"],
         )
 
+    # Clone server locally in project, was having issues with using uvx package
     server_params = StdioServerParameters(
         command="uv",
         args=[
