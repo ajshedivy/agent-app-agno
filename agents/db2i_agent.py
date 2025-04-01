@@ -1,16 +1,17 @@
 from contextlib import asynccontextmanager
 from textwrap import dedent
-from typing import Any, AsyncGenerator, Dict, Union
+from typing import Any, AsyncGenerator, Dict
+
 from agno.agent import Agent
-from agno.tools.mcp import MCPTools
+from agno.models.base import Model
+from agno.models.openai import OpenAIChat
 from agno.storage.agent.postgres import PostgresAgentStorage
+from agno.tools.mcp import MCPTools
+from dotenv import load_dotenv
+from mcp import StdioServerParameters
+
 from agents.model import get_model
 from db.session import db_url
-from dotenv import load_dotenv
-from agno.models.openai import OpenAIChat
-from agno.models.base import Model
-from mcp import StdioServerParameters
-import os
 
 load_dotenv()
 server_path = "/app/agents/db2i-agents/examples/mcp/db2i-mcp-server"
