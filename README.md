@@ -123,19 +123,21 @@ Here is a quick overview of the UI:
 - Set the username for chat session. 
 
 ### Add New System Connection
-<div style="display: flex; align-items: center;">
-  <img src="images/image-2.png" alt="System connection selection interface" width="400px" />
-  <div style="margin-left: 20px;">
-    <p>Start by configuring a system</p>
-    <ul>
-      <li><strong>Host:</strong> Your IBM i system</li>
-      <li><strong>User:</strong> IBM i user ID</li>
-      <li><strong>Password:</strong> IBM i password</li>
-      <li><strong>Port:</strong> Port running Mapepire</li>
-      <li><strong>Schema:</strong> default schema (e.g. "SAMPLE")</li>
-    </ul>
-  </div>
-</div>
+<table>
+  <tr>
+    <td width="400px"><img src="images/image-2.png" alt="System connection selection interface" width="100%" /></td>
+    <td>
+      <p>Start by configuring a system</p>
+      <ul>
+        <li><strong>Host:</strong> Your IBM i system</li>
+        <li><strong>User:</strong> IBM i user ID</li>
+        <li><strong>Password:</strong> IBM i password</li>
+        <li><strong>Port:</strong> Port running Mapepire</li>
+        <li><strong>Schema:</strong> default schema (e.g. "SAMPLE")</li>
+      </ul>
+    </td>
+  </tr>
+</table>
 
 Once you have configured the system connection, you can select it from the dropdown menu:
 ![alt text](images/image-3.png)
