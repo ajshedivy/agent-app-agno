@@ -61,7 +61,7 @@ async def body():
             """
         <div style="padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px;">
             <h3>Db2i</h3>
-            <p>A database agent for db2 for i.</p>
+            <p>A database agent for Db2 for i that uses Mapepire to securely connect to your database to help answer questions about the provided schema.</p>
             <p>Perfect for exploring your database.</p>
         </div>
         """,
@@ -75,7 +75,6 @@ async def main():
     await header()
     await body()
     await footer()
-    await about_agno()
 
 
 if __name__ == "__main__":

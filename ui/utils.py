@@ -362,7 +362,7 @@ async def create_system():
                 host = st.text_input("Host", placeholder="e.g., localhost or 192.168.1.100")
                 user = st.text_input("User", placeholder="Username")
                 password = st.text_input("Password", type="password")
-                port = st.number_input("Port", min_value=1, max_value=65535, value=50000)
+                port = st.number_input("Port", min_value=1, max_value=65535, value=8076)
                 schema = st.text_input("Schema", placeholder="Default schema")
                 
                 # Submit button
