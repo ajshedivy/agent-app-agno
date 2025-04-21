@@ -1,6 +1,10 @@
 from pathlib import Path
+import platform
 
 from agno.workspace.settings import WorkspaceSettings
+
+#detect if running running dev build on Windows
+is_windows = platform.system() == "Windows"
 
 #
 # We define workspace settings using a WorkspaceSettings object
@@ -25,7 +29,7 @@ ws_settings = WorkspaceSettings(
     # 'Name:tag' for the image
     image_name="agent-app",
     # Build images locally
-    build_images=True,
+    build_images=False if is_windows else True,
     # Push images to the registry
     push_images=False,
     # Skip cache when building images
