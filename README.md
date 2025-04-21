@@ -45,6 +45,11 @@ Start using the newly created environment:
 ```sh
 source .venv/bin/activate
 ```
+---
+
+> [!NOTE]
+> **Windows Users:** If you're on Windows, follow the Windows setup guide: [Windows Setup](./WINDOWS_SETUP.md)
+> 
 
 ## Run Application Locally using Docker or Podman
 
@@ -90,6 +95,8 @@ export EXA_API_KEY=your_key_here
 ```
 
 ### 3. Build and Run the Application
+
+
 
 **Step 1:** Build container images
 ```sh
